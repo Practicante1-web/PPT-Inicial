@@ -11,15 +11,14 @@ import streamlit as st
 from data_model import read_book, values, filter_jun, summary_table
 from html_renderer import render
 
-
 ROOT = Path(__file__).parent
 IMAGE_KEYS = {
     'general_environment_image', 'expansion_map', 'solution_image_1', 'solution_image_2',
     'expansion_intelligence', 'layout_image', 'capex_image', 'internal_image',
-    'similar_image', 'operating_store_image', 'success_criteria_image',
+    'similar_image', 'similar_image_2', 'operating_store_image', 'success_criteria_image',
     'financial_viability_image',
     'microsaturation_image_1', 'microsaturation_image_2', 'microsaturation_image_3', 'microsaturation_image_4', 'microsaturation_image_5',
-    'pilot_image_1', 'pilot_image_2',
+    'pilot_image_1', 'pilot_image_2',  # legado, ya no se usa en el formulario
     'generator_image_1', 'generator_image_2', 'generator_image_3', 'generator_image_4',
     'generator_housing_image_1', 'generator_housing_image_2', 'generator_housing_image_3', 'generator_housing_image_4',
     'generator_employment_image_1', 'generator_employment_image_2', 'generator_employment_image_3', 'generator_employment_image_4',
@@ -158,7 +157,9 @@ SPECIALISTS = [
     'ANDRES DUQUE RESTREPO', 'JURY CAROLINA GONZALEZ GOMEZ', 'JENNY ACUNA ROJAS',
     'LINA DIAZ ORTIZ', 'MARTHA LILIANA LOPEZ CANDAMIL', 'JORGE GRANADOS',
     'CARLOS BOLAÑOS DIAZ', 'ALEJANDRA ROJAS ROMERO', 'ELVIA JAIMES VELASQUEZ',
-    'LAURA SOFÍA VECINO MARRUGO',
+    'LAURA SOFÍA VECINO MARRUGO', 'TATIANA NIÑO CRUZ', 'DANIEL FELIPE ALVAREZ',
+    'STEFANIA BABATIVA MORENO', 'SEBASTIAN APONTE CARVAJAL', 'VALENTINA MARIN',
+    'JHON ESPINOZA',
 ]
 GENERATOR_TYPES = ['Administrativo', 'Residencial', 'Comercial', 'Industrial', 'Educativo', 'Salud', 'Transporte masivo']
 YES_NO = ['SI', 'NO']
@@ -422,12 +423,20 @@ with st.expander('Expansión | Mercado y Tráfico'):
     f['vehicle_15'] = st.text_input('Tráfico vehicular', f.get('vehicle_15', ''), key='s5_vehicle')
     f['motorcycle_15'] = st.text_input('Tráfico de motos', f.get('motorcycle_15', ''), key='s5_motorcycle')
 
-with st.expander('Tienda Hermana'):
-    image_uploader('Foto Tienda Hermana', 'similar_image', 's8_similar')
-    open_store_options = [''] + f.get('open_stores', [])
-    saved_store = f.get('book_store', '') if f.get('book_store', '') in open_store_options else ''
-    f['book_store'] = st.selectbox('Tienda abierta espejo — desde Book', open_store_options, index=open_store_options.index(saved_store), key='s8_open_store') if f.get('open_stores') else ''
-    f['similar_comments'] = st.text_area('Comentarios', f.get('similar_comments', ''), key='s8_comments')
+with st.expander('Microsaturación adicional'):
+    micro_options = ['No', 'Sí']
+    micro_default = f.get('microsaturation_enabled', 'No') if f.get('microsaturation_enabled', 'No') in micro_options else 'No'
+    f['microsaturation_enabled'] = st.radio('¿Hay microsaturación?', micro_options, index=micro_options.index(micro_default), horizontal=True, key='s12_microsaturation_enabled')
+    if f['microsaturation_enabled'] == 'Sí':
+        st.caption('Puedes subir hasta 5 fotos; la presentación las acomoda automáticamente según la cantidad cargada.')
+        for i in range(1, 6):
+            image_uploader(f'Foto de microsaturación {i}', f'microsaturation_image_{i}', f's12_micro{i}')
+    else:
+        for i in range(1, 6):
+            imgs[f'microsaturation_image_{i}'] = None
+
+with st.expander('Networks'):
+    image_uploader('Foto de Networks', 'success_criteria_image', 's9_image')
 
 with st.expander('Condiciones comerciales'):
     st.caption('La columna Estándar se completa automáticamente. La columna Nombre del proyecto queda editable fila por fila.')
@@ -454,6 +463,9 @@ with st.expander('Condiciones comerciales'):
     f['opening_date'] = st.selectbox('Apertura (mes)', MONTHS, index=MONTHS.index(opening_default) if opening_default in MONTHS else 0, key='s10_opening')
     f['commercial_comments'] = st.text_area('Comentarios', f.get('commercial_comments', ''), key='s10_comments')
 
+with st.expander('Viabilidad financiera'):
+    image_uploader('Foto de viabilidad financiera — se presentará dentro de la slide', 'financial_viability_image', 's11_image')
+
 if jun is not None:
     st.subheader('Vista previa de Book')
     st.dataframe(summary_table(filter_jun(sheets, city, upz)), width='stretch', hide_index=True)
@@ -477,7 +489,7 @@ with col_presentation:
 if generate:
     image_bytes = {key: as_bytes(value) for key, value in imgs.items()}
     html = render(f, sheets, image_bytes)
-    slide_count = 7
+    slide_count = 9 if f.get('microsaturation_enabled') == 'Sí' else 8
     st.success(f'Presentación generada con {slide_count} secciones.')
     st.download_button(
         'Descargar presentación principal',
