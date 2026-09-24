@@ -368,6 +368,8 @@ with st.expander('Portada', expanded=True):
 
 with st.expander('General'):
     city_options = [''] + values(jun, 'MUNICIPIO') if jun is not None else ['']
+    if 'Facatativá' not in city_options:
+        city_options.append('Facatativá')
     if 'Ciudad nueva' not in city_options:
         city_options.append('Ciudad nueva')
     city_default = f.get('city', '') if f.get('city', '') in city_options else ''
