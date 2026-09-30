@@ -343,6 +343,16 @@ def render(fields, sheets, images):
             <div class="micro-grid {count_class}">{micro_html}</div>
         ''', number=None))
 
+    slides.append(slide('Tienda Hermana', f'''
+        <div class="sister-layout">
+            <div class="store-card sister-photo">{media(images.get('similar_image'), 'store-image', 'Carga la foto de la tienda espejo', 'Tienda espejo')}</div>
+            <div class="sister-right">
+                <div class="sister-name-card compact"><span>TIENDA HERMANA SELECCIONADA</span><strong>{text(fields.get('book_store', 'Pendiente'))}</strong><p>{text(fields.get('similar_comments', ''), 'Sin comentarios adicionales')}</p>{f'<div class="links">{link("Link Tienda Hermana", fields.get("similar_store_link"))}</div>' if fields.get('similar_store_link') else ''}</div>
+                <div class="sister-secondary-photo">{media(images.get('similar_image_2'), 'sister-secondary-image', 'Carga una foto adicional', 'Foto adicional tienda hermana')}</div>
+            </div>
+        </div>
+    ''', number=8))
+
     slides.append(slide('Networks', f'''
         <div class="single-asset-layout">
             <div class="asset-card single-asset-card">
@@ -593,7 +603,7 @@ a { color:var(--red); font-weight:800; text-decoration:none; }
     .micro-grid.count-2 { grid-template-columns:repeat(2,1fr); grid-template-rows:1fr; grid-auto-rows:unset; height:5.7in; }
     .micro-grid.count-4 { grid-template-columns:repeat(2,1fr); }
     .micro-grid.count-5 { grid-template-columns:repeat(3,1fr); }
-    .micro-photo { display:block; width:100%; height:100%; min-height:0; object-fit:cover; border-radius:.08in; box-shadow:0 8px 18px rgba(70,25,0,.15); }
+    .micro-photo { display:block; width:100%; height:100%; min-height:0; object-fit:contain; object-position:center; background:#F4F1EA; border-radius:.08in; box-shadow:0 8px 18px rgba(70,25,0,.15); }
     .pilot-grid { display:grid; grid-template-columns:1fr 1fr; gap:.25in; height:5.65in; }
     .pilot-card { min-width:0; overflow:hidden; background:#fff; border-radius:.1in; box-shadow:0 11px 24px rgba(70,25,0,.14); }
     .pilot-photo { display:block; width:100%; height:5.65in; object-fit:cover; }
