@@ -159,7 +159,7 @@ SPECIALISTS = [
     'CARLOS BOLAÑOS DIAZ', 'ALEJANDRA ROJAS ROMERO', 'ELVIA JAIMES VELASQUEZ',
     'LAURA SOFÍA VECINO MARRUGO', 'TATIANA NIÑO CRUZ', 'DANIEL FELIPE ALVAREZ',
     'STEFANIA BABATIVA MORENO', 'SEBASTIAN APONTE CARVAJAL', 'VALENTINA VALENCIA',
-    'JHON ESPINOZA',
+    'JHON ESPINOZA', 'JAIME GUTIERREZ PEREZ',
 ]
 GENERATOR_TYPES = ['Administrativo', 'Residencial', 'Comercial', 'Industrial', 'Educativo', 'Salud', 'Transporte masivo']
 YES_NO = ['SI', 'NO']
@@ -190,6 +190,7 @@ FORM_WIDGET_DEFAULTS = {
     's6_comments': ('capex_comments', ''),
     's8_open_store': ('book_store', ''),
     's8_comments': ('similar_comments', ''),
+    's8_link': ('similar_store_link', ''),
     's10_signature': ('signature', ''),
     's10_delivery': ('delivery_date', ''),
     's10_opening': ('opening_date', ''),
@@ -437,6 +438,15 @@ with st.expander('Microsaturación adicional'):
         for i in range(1, 6):
             imgs[f'microsaturation_image_{i}'] = None
 
+with st.expander('Tienda Hermana'):
+    image_uploader('Foto Tienda Hermana', 'similar_image', 's8_similar')
+    image_uploader('Foto adicional Tienda Hermana', 'similar_image_2', 's8_similar_2')
+    open_store_options = [''] + f.get('open_stores', [])
+    saved_store = f.get('book_store', '') if f.get('book_store', '') in open_store_options else ''
+    f['book_store'] = st.selectbox('Tienda abierta espejo — desde Book', open_store_options, index=open_store_options.index(saved_store), key='s8_open_store') if f.get('open_stores') else ''
+    f['similar_comments'] = st.text_area('Comentarios', f.get('similar_comments', ''), key='s8_comments')
+    f['similar_store_link'] = st.text_input('Link de tienda hermana — de ubicación (Maps)', f.get('similar_store_link', ''), key='s8_link')
+
 with st.expander('Networks'):
     image_uploader('Foto de Networks', 'success_criteria_image', 's9_image')
 
@@ -491,7 +501,7 @@ with col_presentation:
 if generate:
     image_bytes = {key: as_bytes(value) for key, value in imgs.items()}
     html = render(f, sheets, image_bytes)
-    slide_count = 9 if f.get('microsaturation_enabled') == 'Sí' else 8
+    slide_count = 10 if f.get('microsaturation_enabled') == 'Sí' else 9
     st.success(f'Presentación generada con {slide_count} secciones.')
     st.download_button(
         'Descargar presentación principal',
