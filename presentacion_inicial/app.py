@@ -385,24 +385,25 @@ with st.expander('General'):
     upz = st.selectbox('UPZ / comuna', upz_options, index=upz_options.index(upz_default), key='book_upz')
     f.update({'city': city, 'upz': upz})
     f['project_coordinates'] = st.text_input(
-        'Coordenadas del punto (latitud, longitud)',
+        'Coordenadas del punto (latitud, longitud) *',
         f.get('project_coordinates', ''),
         key='s2_coords',
         placeholder='Ej: 4.7229, -74.044754',
-        help='Cópialas desde Google Maps (clic derecho sobre el punto). Sirven con punto o con coma decimal. '
-             'Con ellas, las tablas TMCB y EXP muestran las 5 tiendas más cercanas de la UPZ.',
+        help='OBLIGATORIO. Cópialas desde Google Maps (clic derecho sobre el punto). Sirven con punto o con coma decimal. '
+             'Con ellas, las tablas TMCB y EXP muestran las tiendas más cercanas al punto (máximo 5 por tabla).',
     )
     coords_text = (f['project_coordinates'] or '').strip()
+    coords_ok = parse_coordinates(coords_text) is not None
     if not coords_text:
-        st.caption('Opcional. Sin coordenadas, las tablas TMCB y EXP muestran las primeras 5 tiendas de la UPZ.')
-    elif parse_coordinates(coords_text) is None:
+        st.warning('Obligatorio: escribe las coordenadas del punto. Sin ellas no se puede generar la presentación.')
+    elif not coords_ok:
         st.warning('No pude leer las coordenadas. Usa el formato: 4.7229, -74.044754 (latitud, longitud).')
     elif jun is not None:
         coord_lat_col, coord_lon_col = find_coordinate_columns(jun)
         if coord_lat_col is None:
             st.warning('No encontré las columnas de coordenadas en el Book, así que las tablas no se ordenarán por cercanía.')
         else:
-            st.caption(f'Distancias calculadas con las columnas «{coord_lat_col}» (latitud) y «{coord_lon_col}» (longitud) del Book.')
+            st.caption(f'Cercanía calculada con las columnas «{coord_lat_col}» (latitud) y «{coord_lon_col}» (longitud) del Book.')
     image_uploader('Foto de entorno general', 'general_environment_image', 's2_img')
     if city == 'Ciudad nueva':
         f['new_city'] = st.text_input('Ciudad nueva / municipio', f.get('new_city', ''), key='s2_new_city')
@@ -517,7 +518,9 @@ with col_json:
         help='Guarda campos, selecciones e imágenes para restaurarlos después.',
     )
 with col_presentation:
-    generate = st.button('Generar presentación', type='primary', width='stretch')
+    generate = st.button('Generar presentación', type='primary', width='stretch', disabled=not coords_ok)
+if not coords_ok:
+    st.error('Falta la coordenada del punto (sección General → «Coordenadas del punto»). Es obligatoria para generar la presentación.')
 
 if generate:
     image_bytes = {key: as_bytes(value) for key, value in imgs.items()}
