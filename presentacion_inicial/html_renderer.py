@@ -361,23 +361,10 @@ def render(fields, sheets, images):
 
     tmc_label = nearest_label(tmc_state, tmc_n)
     exp_label = nearest_label(exp_state, exp_n)
-    ordered_by_distance = use_distance and 'sin_orden' not in (tmc_state, exp_state)
-
-    matched_upz = bool(upz) and 'UPZ/COMUNA' in city_df and not upz_df.empty
-    matched_city = bool(city) and 'MUNICIPIO' in jun and not city_df.empty
-    if matched_upz:
-        averages_scope = 'todas las tiendas ubicadas en la UPZ del punto potencial'
-    elif matched_city:
-        averages_scope = 'todas las tiendas del municipio del punto potencial (no hay tiendas registradas en esa UPZ)'
-    else:
-        averages_scope = 'todas las tiendas del Book (no hay tiendas registradas en la UPZ ni en el municipio del punto potencial)'
-    if ordered_by_distance:
-        tables_note = 'Las tiendas TMCB y EXP que aparecen en las tablas son las más cercanas al punto potencial (máximo 5 por tabla).'
-    else:
-        tables_note = 'Las tablas muestran hasta 5 tiendas, sin ordenar por cercanía al punto potencial (faltan coordenadas en el Book).'
     general_note = (
-        f'<div class="general-note"><b>IMPORTANTE:</b> {tables_note} '
-        f'Los promedios corresponden a {averages_scope}.</div>'
+        '<div class="general-note"><b>IMPORTANTE:</b> Las tiendas TMCB y EXP que aparecen en las tablas son las más cercanas '
+        'al punto potencial (máximo 5 por tabla). Los promedios (<strong>Venta promedio, Renta promedio y Costo m² promedio</strong>) '
+        'corresponden a todas las tiendas ubicadas en la UPZ del punto potencial.</div>'
     )
 
     def avg(df, column):
