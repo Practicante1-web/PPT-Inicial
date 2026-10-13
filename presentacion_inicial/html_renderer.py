@@ -678,16 +678,16 @@ def render_with_info(fields, sheets, images):
                 hambre_missing.extend(frame.loc[frame['_HAMBRE'].isna(), 'NAME'].astype(str).tolist())
             return table_html(frame[cols].rename(columns=rename), 'data-table compact-table')
         if df.empty:
-            return view(df), 'vacia', 0
+            return view(df), 'vacia', 0, df
         if use_distance:
             ranked = nearest_stores(df, project_point, lat_col, lon_col, limit=5)
             if not ranked.empty:
-                return view(ranked), 'cercanas', len(ranked)
+                return view(ranked), 'cercanas', len(ranked), ranked
         shown = df.head(5)
-        return view(shown), 'sin_orden', len(shown)
+        return view(shown), 'sin_orden', len(shown), shown
 
-    tmc_table, tmc_state, tmc_n = nearest_table(tmc)
-    exp_table, exp_state, exp_n = nearest_table(exp)
+    tmc_table, tmc_state, tmc_n, tmc_shown = nearest_table(tmc)
+    exp_table, exp_state, exp_n, exp_shown = nearest_table(exp)
 
     def nearest_label(state, n):
         return f' <span>· {n} más cercana{"" if n == 1 else "s"}</span>' if state == 'cercanas' else ''
@@ -695,27 +695,33 @@ def render_with_info(fields, sheets, images):
     tmc_label = nearest_label(tmc_state, tmc_n)
     exp_label = nearest_label(exp_state, exp_n)
     if andatti_active:
-        averages_names = 'Venta promedio (HAMBRE) TMCB, Venta promedio (HAMBRE) EXP, Renta promedio y Costo m² promedio'
-        period_note = f' Venta (HAMBRE): promedio de los últimos 3 meses ({andatti_period}).' if andatti_period else ''
+        period_note = f': promedio de los últimos 3 meses ({andatti_period})' if andatti_period else ''
+        averages_note = (
+            'Los promedios (<strong>Venta promedio (HAMBRE) TMCB, Venta promedio (HAMBRE) EXP, Renta promedio y Costo m² promedio</strong>) '
+            'corresponden <strong>solo a las tiendas que salen en la tabla</strong>'
+        )
     else:
-        averages_names = 'Venta promedio, Renta promedio y Costo m² promedio'
         period_note = ''
+        averages_note = (
+            'Los promedios (<strong>Venta promedio, Renta promedio y Costo m² promedio</strong>) '
+            'corresponden a todas las tiendas ubicadas en la UPZ del punto potencial'
+        )
     general_note = (
         '<div class="general-note"><b>IMPORTANTE:</b> Las tiendas TMCB y EXP que aparecen en las tablas son las más cercanas '
-        f'al punto potencial (máximo 5 por tabla). Los promedios (<strong>{averages_names}</strong>) '
-        f'corresponden a todas las tiendas ubicadas en la UPZ del punto potencial.{period_note}</div>'
+        f'al punto potencial (máximo 5 por tabla). {averages_note}{period_note}.</div>'
     )
 
     def avg(df, column):
         return df[column].mean() if column in df and not df.empty else None
 
     if andatti_active:
+        shown_all = pd.concat([tmc_shown, exp_shown], ignore_index=True)
         kpis_html = (
             '<div class="general-kpis kpis-4">'
-            f'<div><span>Venta promedio (HAMBRE) TMCB</span><strong>{money(avg(tmc, "_HAMBRE"))}</strong></div>'
-            f'<div><span>Venta promedio (HAMBRE) EXP</span><strong>{money(avg(exp, "_HAMBRE"))}</strong></div>'
-            f'<div><span>Renta promedio</span><strong>{money(avg(combined, "RENTA UM_NUM"))}</strong></div>'
-            f'<div><span>Costo m² promedio</span><strong>{money(avg(combined, "COSTO M2_NUM"))}</strong></div></div>'
+            f'<div><span>Venta promedio (HAMBRE) TMCB</span><strong>{money(avg(tmc_shown, "_HAMBRE"))}</strong></div>'
+            f'<div><span>Venta promedio (HAMBRE) EXP</span><strong>{money(avg(exp_shown, "_HAMBRE"))}</strong></div>'
+            f'<div><span>Renta promedio</span><strong>{money(avg(shown_all, "RENTA UM_NUM"))}</strong></div>'
+            f'<div><span>Costo m² promedio</span><strong>{money(avg(shown_all, "COSTO M2_NUM"))}</strong></div></div>'
         )
     else:
         kpis_html = (
